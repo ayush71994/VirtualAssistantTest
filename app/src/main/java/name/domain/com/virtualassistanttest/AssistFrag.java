@@ -191,7 +191,7 @@ import java.util.StringTokenizer;
 
         String com = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION).get(0);
         com = com.toUpperCase();
-        if (com.matches("(.*)CALL(.*)")||com.matches("(.*)SPEAK"))
+        if (com.matches("(.*)CALL(.*)")||com.matches("(.*)SPEAK(.*)"))
         {
             boolean fl = true;
             //Obtain name
@@ -215,8 +215,15 @@ import java.util.StringTokenizer;
             else if(name.matches("TO(.*)")||name.matches("WITH(.*)"))
             {
 
-                name=com.substring(com.indexOf("TO")+2,com.length()).trim();
-                Log.i("NAME:",name);
+                ind=com.indexOf("TO");
+                if(ind==-1)
+                {
+                    name = com.substring(com.indexOf("WITH") + 4, com.length()).trim();
+                }
+                else {
+                    name = com.substring(com.indexOf("TO") + 2, com.length()).trim();
+                }
+                    Log.i("NAME:",name);
             }
             Log.i("NAME:",name);
             String fname = (name.indexOf(" ") != -1) ? name.substring(0, name.indexOf(" ")) : name;
