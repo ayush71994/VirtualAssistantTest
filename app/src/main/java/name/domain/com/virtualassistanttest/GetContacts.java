@@ -34,11 +34,13 @@ public class GetContacts {
 
     public ArrayList<Person> checkIfContactPresent(String name) {
         cur.moveToFirst();
+        if(name.equals(""))
+            return null;
+        boolean flag=true;
         ArrayList<Person> per=new ArrayList<Person>();
         if (cur.getCount() > 0)
         {
             DoubleMetaphone doubleMetaphone = new DoubleMetaphone();
-
             while(cur.moveToNext())
             {
                 //String id = cur.getString(cur.getColumnIndex(ContactsContract.Contacts._ID));
@@ -56,9 +58,12 @@ public class GetContacts {
                             {
                                 Log.i("Calling:",contacttemp);
                                 phoneno=getPhone(cur);
-                                if(!phoneno.equals("")) {
+                                if(!(phoneno.size()==0)) {
                                     Person obj = new Person(contacttemp, phoneno);
-                                    per.add(obj);
+                                    if(!per.contains(obj)) {
+                                        per.add(obj);
+                                        flag = false;
+                                    }
                                 }
                             }
                         /*if (contact.toUpperCase().equals(name.toUpperCase())) {
@@ -113,7 +118,10 @@ public class GetContacts {
                     pCur.close();*/
             }
         }
-        return per;
+        if(flag)
+            return null;
+        else
+            return per;
     }
     public ArrayList<String> getPhone(Cursor cur) {
 
@@ -124,7 +132,11 @@ public class GetContacts {
                 new String[]{id}, null);
         ArrayList<String> phoneNo=new ArrayList<String>();
         while(pCur.moveToNext()) {
-            phoneNo.add(pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)));
+            String no=pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)).replaceAll("\\s","");
+            if(!phoneNo.contains(no))
+            {
+                phoneNo.add(no);
+            }
 
         }
         return phoneNo;

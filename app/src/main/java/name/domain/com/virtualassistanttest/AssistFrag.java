@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
@@ -17,6 +18,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -26,12 +30,15 @@ import java.util.StringTokenizer;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class AssistFrag extends Fragment implements TextToSpeech.OnInitListener,RecognitionListener{
+    public class AssistFrag extends Fragment implements TextToSpeech.OnInitListener,RecognitionListener{
 
     private TextToSpeech tts;
+    private ImageView img;
+    private TextView liste;
     private Bundle temp;
     Communicator communicator;
     GetContacts obj;
+    Button listen;
     // Speech recognizer instance
     private SpeechRecognizer speech = null;
     public AssistFrag() {
@@ -44,14 +51,37 @@ public class AssistFrag extends Fragment implements TextToSpeech.OnInitListener,
         communicator=(Communicator)(context);
     }
 
-
+    TextToSpeech.OnUtteranceCompletedListener listener=new TextToSpeech.OnUtteranceCompletedListener() {
+        @Override
+        public void onUtteranceCompleted(String s) {
+            getActivity().runOnUiThread(new Runnable() {
+                public void run() {
+                    getSpeechRecognizer().cancel();
+                    startVoiceRecognitionCycle();
+                }
+            });
+        }
+    };
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         tts = new TextToSpeech(getActivity(),this);
         temp=savedInstanceState;
-        return inflater.inflate(R.layout.fragment_assist, container, false);
+        View view=inflater.inflate(R.layout.fragment_assist, container, false);
+        listen=(Button)view.findViewById(R.id.listen);
+        img=(ImageView)view.findViewById(R.id.imageView);
+        liste=(TextView)view.findViewById(R.id.textView);
+        listen.setVisibility(View.VISIBLE);
+        listen.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startVoiceRecognitionCycle();
+                //listen.setVisibility(View.INVISIBLE);
+            }
+        });
+
+        return view;
     }
 
     @Override
@@ -92,6 +122,7 @@ public class AssistFrag extends Fragment implements TextToSpeech.OnInitListener,
     public void onError(int error) {
         String message;
         boolean restart = true;
+        listening(false);
         switch (error)
         {
             case SpeechRecognizer.ERROR_AUDIO:
@@ -112,7 +143,9 @@ public class AssistFrag extends Fragment implements TextToSpeech.OnInitListener,
                 message = "Network timeout";
                 break;
             case SpeechRecognizer.ERROR_NO_MATCH:
+                //listen.setVisibility(View.VISIBLE);
                 message = "No match";
+                speakOut("I dont understand");
                 break;
             case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
                 message = "RecognitionService busy";
@@ -122,6 +155,7 @@ public class AssistFrag extends Fragment implements TextToSpeech.OnInitListener,
                 break;
             case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
                 message = "No speech input";
+                speakOut("Please say something");
                 break;
             default:
                 message = "Not recognised";
@@ -141,6 +175,7 @@ public class AssistFrag extends Fragment implements TextToSpeech.OnInitListener,
 
     @Override
     public void onResults(Bundle results) {
+        listening(false);
         StringBuilder scores = new StringBuilder();
         for (int i = 0; i < results.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES).length; i++) {
             scores.append(results.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES)[i] + " ");
@@ -156,19 +191,56 @@ public class AssistFrag extends Fragment implements TextToSpeech.OnInitListener,
 
         String com = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION).get(0);
         com = com.toUpperCase();
-        if (com.matches("(.*)CALL(.*)")) {
+        if (com.matches("(.*)CALL(.*)")||com.matches("(.*)SPEAK"))
+        {
             boolean fl = true;
             //Obtain name
-            String name = com.substring(com.indexOf("CALL") + 4, com.length()).trim();
-            name = (name.indexOf(" ") != -1) ? name.substring(0, name.indexOf(" ")) : name;
-            name = name.trim();
+            int ind;
+            String name;
+            ind=com.indexOf("CALL");
+            if(ind==-1)
+            {
+                ind=com.indexOf("SPEAK");
+                name=com.substring(ind + 5, com.length()).trim();
+            }
+            else {
+                name = com.substring(ind + 4, com.length()).trim();
+            }
+            if(name==null)
+            {
+                speechError(1);
+                return;
+
+            }
+            else if(name.matches("TO(.*)")||name.matches("WITH(.*)"))
+            {
+
+                name=com.substring(com.indexOf("TO")+2,com.length()).trim();
+                Log.i("NAME:",name);
+            }
+            Log.i("NAME:",name);
+            String fname = (name.indexOf(" ") != -1) ? name.substring(0, name.indexOf(" ")) : name;
+            fname = fname.trim();
             obj = new GetContacts(getActivity());
             ArrayList<Person> per = obj.checkIfContactPresent(name);
+            if(per.size()==0)
+            {
+                speechError(2);
+                return;
+            }
             for(int i=0;i<per.size();i++) {
                 Log.i("Person", per.get(i).getName() + ":" + per.get(i).getPhoneNo());
             }
-
-            Intent callIntent = new Intent(Intent.ACTION_CALL);
+            if(per.size()==1)
+            {
+                communicator.showDialog(per.get(0));
+                return;
+            }
+            else
+            {
+                communicator.sendPersonList(per);
+            }
+            /*Intent callIntent = new Intent(Intent.ACTION_CALL);
             callIntent.setData(Uri.parse("tel:"+per.get(0).getPhoneNo()));
             if (ActivityCompat.checkSelfPermission(getActivity(), android.Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
                 Log.i("PERMISSION","NOPE");
@@ -181,13 +253,29 @@ public class AssistFrag extends Fragment implements TextToSpeech.OnInitListener,
                 // for ActivityCompat#requestPermissions for more details.
                 return;
             }
-            startActivity(callIntent);
+            startActivity(callIntent);*/
             //System.out.println(name+name.length());
-            communicator.sendPersonList(per);
         }
-        speakOut("I'm done for the day");
+        else
+        {
+            speakOut("Please say call followed by name");
+        }
 
     }
+
+    private void speechError(int i) {
+        switch(i)
+        {
+            case 1:speakOut("No name Spoken");
+                    break;
+            case 2:speakOut("Name not recognised");
+                    break;
+        }
+    }
+
+    //public ArrayList<Person> checkSurName(String sur){
+    //    String surn;
+    //}
 
     @Override
     public void onPartialResults(Bundle bundle) {
@@ -201,63 +289,67 @@ public class AssistFrag extends Fragment implements TextToSpeech.OnInitListener,
 
     @Override
     public void onInit(int status) {
-        if (status == TextToSpeech.SUCCESS) {
+        if (status == TextToSpeech.SUCCESS)
+        {
 
-            //tts.setOnUtteranceCompletedListener(this);
-            //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 
-            tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-                @Override
-                public void onStart(String s)
-                {
-                    Log.i("Start:",s);
-                }
+                tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                    @Override
+                    public void onStart(String s) {
+                        Log.i("Start:", s);
+                    }
 
-                @Override
-                public void onDone(String s) {
+                    @Override
+                    public void onDone(String s) {
 
-                    Log.i("Done:",s);
-                    //speakOut("I'm done for the day");
+                        Log.i("Done:", s);
+                        //speakOut("I'm done for the day");
                         /*if (processStart) {
                             speech.startListening(intent);
                         } else {
                             ...
                         }*/
-                    //flag=false;
-                    getActivity().runOnUiThread(new Runnable() {
-                        public void run() {
-                            getSpeechRecognizer().cancel();
-                            startVoiceRecognitionCycle();
-                        }
-                    });
+                        //flag=false;
+                        getActivity().runOnUiThread(new Runnable() {
+                            public void run() {
+                                getSpeechRecognizer().cancel();
+                                startVoiceRecognitionCycle();
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(String s) {
+                        Log.i("Start:", s);
+                    }
+                });
+
+
+                } else {
+                    //btnSpeak.setEnabled(true);
+                    //speakOutWelcomeMessage();
                 }
-
-                @Override
-                public void onError(String s) {
-                    Log.i("Start:",s);
-                }
-            });
-            //}
-
-
-            int result = tts.setLanguage(Locale.UK);
-
-            if (result == TextToSpeech.LANG_MISSING_DATA
-                    || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                Log.e("TTS", "This Language is not supported");
-            } else {
-                //btnSpeak.setEnabled(true);
-                speakOutWelcomeMessage();
+            }
+            else
+            {
+                tts.setOnUtteranceCompletedListener(listener);
             }
 
-        } else {
-            Log.e("TTS", "Initilization Failed!");
+        int result = tts.setLanguage(Locale.UK);
+
+        if (result == TextToSpeech.LANG_MISSING_DATA
+                || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+            Log.e("TTS", "This Language is not supported");
+        }
+        else {
+                Log.e("TTS", "Initilization Failed!");
+            }
+
         }
 
-    }
-
     /** Class private functions */
-    private void speakOutWelcomeMessage() {
+    /*private void speakOutWelcomeMessage() {
 
         int i = 0;
         String text = "Welcome to the virtual assistant app";
@@ -266,7 +358,7 @@ public class AssistFrag extends Fragment implements TextToSpeech.OnInitListener,
 
         //tts.speak(text, TextToSpeech.QUEUE_FLUSH, null);
         tts.speak(text, TextToSpeech.QUEUE_FLUSH,temp,"ID="+i++);
-    }
+    }*/
 
     private void speakOut(String text) {
 
@@ -276,20 +368,21 @@ public class AssistFrag extends Fragment implements TextToSpeech.OnInitListener,
 
 /*
         String text = txtText.getText().toString();*/
+        listening(false);
         StringTokenizer sent=new StringTokenizer(text,".");
         //List<String> sentence= Arrays.asList(text.split("."));
         tts.setPitch((float) 1.5);
-        tts.setSpeechRate((float) 1);
+        tts.setSpeechRate((float) 0.65);
         int i=0;
         while(sent.hasMoreTokens()) {
-            //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Log.v("TextToSpeech","Using UtteranceProgressListener");
             tts.speak(sent.nextToken(), TextToSpeech.QUEUE_FLUSH,temp,"ID="+i++);
-            //}
-            //else
-            //{
-            //    tts.speak(sent.nextToken(),TextToSpeech.QUEUE_FLUSH,null);
-            //}
+            }
+            else
+            {
+                tts.speak(sent.nextToken(),TextToSpeech.QUEUE_FLUSH,null);
+            }
             //while(tts.isSpeaking());
         }
         //Log.i("SEnt:", sent.nextToken());
@@ -306,12 +399,27 @@ public class AssistFrag extends Fragment implements TextToSpeech.OnInitListener,
     /**
      * Fire an intent to start the voice recognition process.
      */
+    public void listening(boolean flag)
+    {
+        if(flag)
+        {
+            img.setImageResource(R.drawable.listen);
+            liste.setText("LISTENING");
+            listen.setVisibility(View.INVISIBLE);
+        }
+        else
+        {
+            img.setImageResource(R.drawable.nlisten);
+            liste.setText("NOT LISTENING");
+            listen.setVisibility(View.VISIBLE);
+        }
+    }
     public void startVoiceRecognitionCycle()
     {
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         getSpeechRecognizer().startListening(intent);
-
+        listening(true);
     }
     /**
      * Stop the voice recognition process and destroy the recognizer.
@@ -326,7 +434,10 @@ public class AssistFrag extends Fragment implements TextToSpeech.OnInitListener,
         }
 
     }
+
+
     public interface Communicator{
         public void sendPersonList(ArrayList<Person> per);
+        public void showDialog(Person per);
     }
 }

@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -13,25 +14,32 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements AssistFrag.Communicator,ItemFragment.OnListFragmentInteractionListener{
 
+    List<Person> person;
+    FragmentManager fb;
+    android.support.v4.app.FragmentTransaction ft;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
+        fb=getSupportFragmentManager();
+        ft=fb.beginTransaction();
+        AssistFrag as=new AssistFrag();
         /*DialogFrag frag=new DialogFrag();
         frag.show(getFragmentManager(),"ABCD");
         */
-        ItemFragment if1=new ItemFragment();
+        /*ItemFragment if1=new ItemFragment();
         FragmentManager fb=getSupportFragmentManager();
-        android.support.v4.app.FragmentTransaction ft=fb.beginTransaction();
-        ft.add(R.id.Cordlay,if1,"GII");
+        android.support.v4.app.FragmentTransaction ft=fb.beginTransaction();*/
+        ft.add(R.id.Rela,as,"AssistFrag");
         ft.commit();
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)!= PackageManager.PERMISSION_GRANTED)
         {
@@ -45,14 +53,14 @@ public class MainActivity extends AppCompatActivity implements AssistFrag.Commun
         {
             PermissionUtils.requestPermission((AppCompatActivity) this,1, Manifest.permission.CALL_PHONE,true);
         }
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        /*FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
-        });
+        });*/
     }
 
     @Override
@@ -70,9 +78,9 @@ public class MainActivity extends AppCompatActivity implements AssistFrag.Commun
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
+        //if (id == R.id.action_settings) {
+          //  return true;
+        //}
 
         return super.onOptionsItemSelected(item);
     }
@@ -81,17 +89,37 @@ public class MainActivity extends AppCompatActivity implements AssistFrag.Commun
     public void sendPersonList(ArrayList<Person> per) {
 
         //Contactlist list=new Contactlist();
+        person=per;
         ItemFragment if1=new ItemFragment();
         if1.setContact(per);
-        FragmentManager fb=getSupportFragmentManager();
-        android.support.v4.app.FragmentTransaction ft=fb.beginTransaction();
-        ft.replace(R.id.Cordlay,if1,"GII");
+        ft=fb.beginTransaction();
+        ft.replace(R.id.Rela,if1,"GII");
+        ft.addToBackStack("AssistFrag");
         ft.commit();
 
     }
 
     @Override
-    public void onListFragmentInteraction(Person item) {
-
+    public void showDialog(Person per) {
+        DialogFrag frag=new DialogFrag();
+        frag.setPhoneno(per.getPhoneNo());
+        frag.show(getFragmentManager(),"CALL Dialog");
     }
+
+    @Override
+    public void touched(Person item) {
+        //Toast.makeText(this,item.getName(),Toast.LENGTH_LONG).show();
+        DialogFrag frag=new DialogFrag();
+        frag.setPhoneno(item.getPhoneNo());
+        frag.show(getFragmentManager(),"CALL Dialog");
+    }
+
+    @Override
+    public void onListFragmentInteraction(Person item) {
+    }
+    @Override
+    public List<Person> getContact(){
+        return person;
+    }
+
 }

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">VirtualAssistantTest</string>
+    <string name="app_name">Easy Call</string>
     <string name="action_settings">Settings</string>
 
     <!-- TODO: Remove or change this placeholder text -->
@@ -7,4 +7,5 @@
     <string name="permission_required_toast" />
     <string name="permission_rationale_record_audio">permission_rationale_record_audio</string>
     <string name="record_audio_permission_denied">record_audio_permission_denied</string>
+    <string name="click_on_me_if_you_want_me_to_listen">Click on me if you want me to listen</string>
 </resources>

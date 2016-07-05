@@ -27,7 +27,6 @@ public class ItemFragment extends Fragment {
     private int mColumnCount = 1;
     List<Person> contact;
     private OnListFragmentInteractionListener mListener;
-
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -36,13 +35,15 @@ public class ItemFragment extends Fragment {
     }
 
     public void setContact(List<Person> contact) {
+       if(contact!=null)
         this.contact = contact;
+        else
+           this.contact=new ArrayList<Person>();
     }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        contact=new ArrayList<Person>();
+        //contact=new ArrayList<Person>();
     }
 
     @Override
@@ -68,6 +69,7 @@ public class ItemFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+
         if (context instanceof OnListFragmentInteractionListener) {
             mListener = (OnListFragmentInteractionListener) context;
         } else {
@@ -95,5 +97,8 @@ public class ItemFragment extends Fragment {
     public interface OnListFragmentInteractionListener {
         // TODO: Update argument type and name
         void onListFragmentInteraction(Person item);
+        public List<Person> getContact();
+
+        void touched(Person mItem);
     }
 }
