@@ -343,7 +343,7 @@ import java.util.StringTokenizer;
                 tts.setOnUtteranceCompletedListener(listener);
             }
 
-        int result = tts.setLanguage(Locale.UK);
+        int result = tts.setLanguage(Locale.getDefault());
 
         if (result == TextToSpeech.LANG_MISSING_DATA
                 || result == TextToSpeech.LANG_NOT_SUPPORTED) {
