@@ -1,4 +1,4 @@
-package name.domain.com.virtualassistanttest;
+package in.dezyne.virtualassistant;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -6,9 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import name.domain.com.virtualassistanttest.ItemFragment.OnListFragmentInteractionListener;
-import name.domain.com.virtualassistanttest.dummy.DummyContent.DummyItem;
-
+import in.dezyne.virtualassistant.ItemFragment.OnListFragmentInteractionListener;
 import java.util.List;
 
 /**

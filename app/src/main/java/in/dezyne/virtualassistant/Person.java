@@ -1,4 +1,4 @@
-package name.domain.com.virtualassistanttest;
+package in.dezyne.virtualassistant;
 
 import java.util.ArrayList;
 

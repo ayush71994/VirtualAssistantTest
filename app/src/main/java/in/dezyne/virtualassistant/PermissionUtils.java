@@ -1,4 +1,4 @@
-package name.domain.com.virtualassistanttest;
+package in.dezyne.virtualassistant;
 
 /**
  * Created by Ayush Agarwal on 6/27/2016.
