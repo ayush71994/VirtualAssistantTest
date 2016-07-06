@@ -2,19 +2,25 @@ package in.dezyne.virtualassistant;
 
 import android.Manifest;
 import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
+
+import com.google.firebase.crash.FirebaseCrash;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +36,7 @@ public class MainActivity extends AppCompatActivity implements AssistFrag.Commun
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        //FirebaseCrash.report(new Exception("APP started crash exception"));
         fb=getSupportFragmentManager();
         ft=fb.beginTransaction();
         AssistFrag as=new AssistFrag();
@@ -91,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements AssistFrag.Commun
         //Contactlist list=new Contactlist();
         person=per;
         ItemFragment if1=new ItemFragment();
-        if1.setContact(per);
+        //if1.setContact(per);
         ft=fb.beginTransaction();
         ft.replace(R.id.Rela,if1,"GII");
         ft.addToBackStack("AssistFrag");
@@ -101,17 +108,43 @@ public class MainActivity extends AppCompatActivity implements AssistFrag.Commun
 
     @Override
     public void showDialog(Person per) {
+        if(per.getPhoneNo().size()==1)
+        {
+            Intent callIntent = new Intent(Intent.ACTION_CALL);
+            callIntent.setData(Uri.parse("tel:"+ per.getPhoneNo().get(0)));
+            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                Log.i("PERMISSION","NOPE");
+                PermissionUtils.requestPermission((AppCompatActivity) this,1, Manifest.permission.RECORD_AUDIO,true);
+            }
+            startActivity(callIntent);
+            return;
+        }
+        else
+        {
         DialogFrag frag=new DialogFrag();
         frag.setPhoneno(per.getPhoneNo());
         frag.show(getFragmentManager(),"CALL Dialog");
+         }
     }
 
+
     @Override
-    public void touched(Person item) {
-        //Toast.makeText(this,item.getName(),Toast.LENGTH_LONG).show();
-        DialogFrag frag=new DialogFrag();
-        frag.setPhoneno(item.getPhoneNo());
-        frag.show(getFragmentManager(),"CALL Dialog");
+    public void touched(Person per) {
+        if(per.getPhoneNo().size()==1)
+        {
+            Intent callIntent = new Intent(Intent.ACTION_CALL);
+            callIntent.setData(Uri.parse("tel:"+ per.getPhoneNo().get(0)));
+            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                Log.i("PERMISSION","NOPE");
+                PermissionUtils.requestPermission((AppCompatActivity) this,1, Manifest.permission.RECORD_AUDIO,true);
+            }
+            startActivity(callIntent);
+        }
+        else {
+            DialogFrag frag = new DialogFrag();
+            frag.setPhoneno(per.getPhoneNo());
+            frag.show(getFragmentManager(), "CALL Dialog");
+        }
     }
 
     @Override

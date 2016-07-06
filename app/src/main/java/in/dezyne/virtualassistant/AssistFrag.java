@@ -206,7 +206,7 @@ import java.util.StringTokenizer;
             else {
                 name = com.substring(ind + 4, com.length()).trim();
             }
-            if(name==null)
+            if(name.equals(""))
             {
                 speechError(1);
                 return;
@@ -230,7 +230,7 @@ import java.util.StringTokenizer;
             fname = fname.trim();
             obj = new GetContacts(getActivity());
             ArrayList<Person> per = obj.checkIfContactPresent(name);
-            if(per.size()==0)
+            if(per==null||per.size()==0)
             {
                 speechError(2);
                 return;
@@ -318,12 +318,6 @@ import java.util.StringTokenizer;
                             ...
                         }*/
                         //flag=false;
-                        getActivity().runOnUiThread(new Runnable() {
-                            public void run() {
-                                getSpeechRecognizer().cancel();
-                                startVoiceRecognitionCycle();
-                            }
-                        });
                     }
 
                     @Override

@@ -32,12 +32,12 @@ public class ItemFragment extends Fragment {
     public ItemFragment() {
     }
 
-    public void setContact(List<Person> contact) {
+    /*public void setContact(List<Person> contact) {
        if(contact!=null)
         this.contact = contact;
         else
            this.contact=new ArrayList<Person>();
-    }
+    }*/
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,7 +58,7 @@ public class ItemFragment extends Fragment {
             } else {
                 recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
             }
-            recyclerView.setAdapter(new MyItemRecyclerViewAdapter(contact, mListener));
+            recyclerView.setAdapter(new MyItemRecyclerViewAdapter(mListener.getContact(), mListener));
         }
         return view;
     }

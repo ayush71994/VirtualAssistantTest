@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "872606107987",
+    "firebase_url": "https://easycallz-19514.firebaseio.com",
+    "project_id": "easycallz-19514",
+    "storage_bucket": "easycallz-19514.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:872606107987:android:e6f927041b9bcda6",
+        "android_client_info": {
+          "package_name": "in.dezyne.virtualassistant"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "872606107987-394io9g0ap9m07oarrvr7bo4mrvnrpvf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "in.dezyne.virtualassistant",
+            "certificate_hash": "9C8F6847EDBEB9A3C1EB67EEAFCB30F87A364295"
+          }
+        },
+        {
+          "client_id": "872606107987-9cb9ubmc5gprmnhs9h30hh5of4687a8v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyALrpPzlqwbt0Zw7cLopBbBlr9c4GLuUGE"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "872606107987-9cb9ubmc5gprmnhs9h30hh5of4687a8v.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

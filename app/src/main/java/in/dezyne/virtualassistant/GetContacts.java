@@ -1,11 +1,15 @@
 package in.dezyne.virtualassistant;
 
+import android.*;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import org.apache.commons.codec.*;
 import org.apache.commons.codec.language.*;
 import android.provider.ContactsContract;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -19,6 +23,10 @@ public class GetContacts {
     Cursor cur;
 
     GetContacts(Context context) {
+        if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.CALL_PHONE)!= PackageManager.PERMISSION_GRANTED)
+        {
+            PermissionUtils.requestPermission((AppCompatActivity) context,1, android.Manifest.permission.CALL_PHONE,true);
+        }
         cr = context.getContentResolver();
         cur = cr.query(ContactsContract.Contacts.CONTENT_URI,
                 null, null, null, null);
@@ -38,6 +46,7 @@ public class GetContacts {
             return null;
         boolean flag=true;
         ArrayList<Person> per=new ArrayList<Person>();
+
         if (cur.getCount() > 0)
         {
             DoubleMetaphone doubleMetaphone = new DoubleMetaphone();
